@@ -1,0 +1,212 @@
+<script>
+  // Esperar a que el DOM esté completamente cargado
+  window.onload = function() {
+    console.log('=== INICIANDO APLICACIÓN ===');
+    
+    // --- VERIFICAR QUE ESTAMOS EN EL ENTORNO CORRECTO ---
+    if (typeof google === 'undefined' || !google.script) {
+      console.error('ERROR: google.script no está disponible');
+      alert('Error: La aplicación no se está ejecutando correctamente. Por favor, recarga la página.');
+      return;
+    }
+    
+    // --- OBTENER ELEMENTOS DEL DOM ---
+    const q1 = document.getElementById('q1');
+    const q2 = document.getElementById('q2');
+    const q3 = document.getElementById('q3');
+    const q4 = document.getElementById('q4');
+    const thankYouCard = document.getElementById('thank-you');
+    const saveEventBtn = document.getElementById('saveEventBtn');
+    const requestTimeBtn = document.getElementById('requestTimeBtn');
+    const confirmationMessage = document.getElementById('confirmationMessage');
+    
+    // Verificar que todos los elementos existen
+    if (!q1 || !q2 || !q3 || !q4 || !thankYouCard) {
+      console.error('ERROR: No se encontraron todas las tarjetas de preguntas');
+      return;
+    }
+    
+    console.log('Elementos encontrados correctamente');
+    
+    // --- ESTABLECER OPACIDAD INICIAL ---
+    q1.style.opacity = '1';
+    q2.style.opacity = '1';
+    q3.style.opacity = '1';
+    q4.style.opacity = '1';
+    thankYouCard.style.opacity = '1';
+    
+    // --- VARIABLES DE ESTADO ---
+    const userAnswers = {};
+    let currentQuestion = 1;
+    
+    // Obtener la matrícula del estudiante
+    const studentIdElement = document.getElementById('studentId');
+    if (studentIdElement) {
+      userAnswers.matricula = studentIdElement.value;
+      console.log('Matrícula del estudiante:', userAnswers.matricula);
+    } else {
+      userAnswers.matricula = 'desconocido';
+      console.warn('No se encontró el ID del estudiante');
+    }
+    
+    // Actualizar nombre en el mensaje de agradecimiento
+    const studentNameDisplay = document.getElementById('studentNameDisplay');
+    const studentNameThanks = document.getElementById('studentNameThanks');
+    if (studentNameDisplay && studentNameThanks) {
+      studentNameThanks.textContent = studentNameDisplay.textContent;
+    }
+    
+    // --- FUNCIÓN PARA MOSTRAR SIGUIENTE PREGUNTA ---
+    function mostrarSiguientePregunta() {
+      console.log('Mostrando pregunta siguiente. Actual:', currentQuestion);
+      
+      // Ocultar pregunta actual con animación
+      const currentCard = document.getElementById('q' + currentQuestion);
+      if (currentCard) {
+        currentCard.style.opacity = '0';
+        setTimeout(function() {
+          currentCard.classList.add('hidden');
+          
+          // Incrementar contador
+          currentQuestion++;
+          
+          // Mostrar siguiente pregunta o pantalla final
+          if (currentQuestion <= 4) {
+            const nextCard = document.getElementById('q' + currentQuestion);
+            if (nextCard) {
+              nextCard.classList.remove('hidden');
+              // Forzar reflow
+              void nextCard.offsetHeight;
+              nextCard.style.opacity = '1';
+              console.log('Pregunta ' + currentQuestion + ' mostrada');
+            }
+          } else {
+            // Mostrar pantalla de agradecimiento
+            thankYouCard.classList.remove('hidden');
+            void thankYouCard.offsetHeight;
+            thankYouCard.style.opacity = '1';
+            console.log('Mostrando pantalla de agradecimiento');
+            
+            // Guardar respuestas
+            console.log('Enviando respuestas:', userAnswers);
+            google.script.run
+              .withFailureHandler(function(error) {
+                console.error('Error al guardar respuestas:', error);
+              })
+              .withSuccessHandler(function(result) {
+                console.log('Respuestas guardadas exitosamente:', result);
+              })
+              .guardarRespuesta(userAnswers);
+          }
+        }, 300);
+      }
+    }
+    
+    // --- AGREGAR EVENT LISTENERS A TODOS LOS BOTONES DE OPCIÓN ---
+    const allOptions = document.querySelectorAll('.option');
+    console.log('Total de opciones encontradas:', allOptions.length);
+    
+    allOptions.forEach(function(button, index) {
+      button.addEventListener('click', function(event) {
+        console.log('Clic en opción:', button.textContent);
+        
+        // Obtener la tarjeta padre
+        const parentCard = button.closest('.question-card');
+        if (!parentCard) {
+          console.error('No se encontró la tarjeta padre');
+          return;
+        }
+        
+        // Verificar que no sea la tarjeta de agradecimiento
+        if (parentCard.id === 'thank-you') {
+          console.log('Clic en thank-you card, ignorando');
+          return;
+        }
+        
+        // Verificar que sea la pregunta actual
+        const cardNumber = parseInt(parentCard.id.replace('q', ''));
+        if (cardNumber !== currentQuestion) {
+          console.log('Clic en pregunta no activa, ignorando');
+          return;
+        }
+        
+        // Guardar respuesta
+        userAnswers['pregunta' + currentQuestion] = button.textContent.trim();
+        console.log('Respuesta guardada para pregunta ' + currentQuestion + ':', button.textContent);
+        
+        // Mostrar siguiente pregunta
+        mostrarSiguientePregunta();
+      });
+    });
+    
+    // --- BOTÓN: AGENDAR EN CALENDARIO ---
+    if (saveEventBtn) {
+      saveEventBtn.addEventListener('click', function() {
+        console.log('Clic en Agendar en Calendario');
+        
+        // Datos de la sesión (hardcoded por ahora para evitar problemas con templates)
+        const sessionTitle = "Lanzamiento Profesional: Sesión de Cierre";
+        const sessionDate = "2025-09-17";
+        const sessionTimeStart = "11:00";
+        const sessionTimeEnd = "12:00";
+        const sessionLocation = "Área de Mentoría, Centrales Sur 3er Piso";
+        const sessionDetails = "Un espacio para resolver tus últimas dudas y afinar tu plan de carrera.";
+        
+        // Crear URL de Google Calendar
+        const startDateTime = new Date(sessionDate + 'T' + sessionTimeStart + ':00-06:00');
+        const endDateTime = new Date(sessionDate + 'T' + sessionTimeEnd + ':00-06:00');
+        
+        const formatDate = function(date) {
+          return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+        };
+        
+        const calendarUrl = 'https://www.google.com/calendar/render?' +
+          'action=TEMPLATE' +
+          '&text=' + encodeURIComponent(sessionTitle) +
+          '&dates=' + formatDate(startDateTime) + '/' + formatDate(endDateTime) +
+          '&details=' + encodeURIComponent(sessionDetails) +
+          '&location=' + encodeURIComponent(sessionLocation);
+        
+        // Abrir calendario
+        window.open(calendarUrl, '_blank');
+        
+        // Registrar asistencia
+        google.script.run
+          .withSuccessHandler(function(result) {
+            confirmationMessage.textContent = '✅ Evento agregado a tu calendario';
+            confirmationMessage.classList.remove('hidden');
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error:', error);
+          })
+          .registrarAsistencia(userAnswers.matricula, "Agendó en Calendario");
+      });
+    }
+    
+    // --- BOTÓN: NO PUEDO ASISTIR ---
+    if (requestTimeBtn) {
+      requestTimeBtn.addEventListener('click', function() {
+        console.log('Clic en No puedo asistir');
+        
+        // Deshabilitar botones
+        saveEventBtn.disabled = true;
+        requestTimeBtn.disabled = true;
+        
+        // Registrar solicitud
+        google.script.run
+          .withSuccessHandler(function(result) {
+            confirmationMessage.textContent = '📝 Hemos registrado tu solicitud. Te contactaremos pronto.';
+            confirmationMessage.classList.remove('hidden');
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error:', error);
+            saveEventBtn.disabled = false;
+            requestTimeBtn.disabled = false;
+          })
+          .registrarAsistencia(userAnswers.matricula, "No puede asistir");
+      });
+    }
+    
+    console.log('=== APLICACIÓN LISTA ===');
+  };
+</script>
