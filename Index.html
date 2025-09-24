@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('Stylesheet'); ?>
+  </head>
+  <body>
+    <div class="background-image"></div> <div class="container">
+      <div class="header">
+        <h1>✅ Checklist de Graduación</h1>
+        <p>¡Hola, <span id="studentNameDisplay"><?= studentName ?></span>! 👋 Un último vistazo a tu preparación.</p>
+      </div>
+
+      <div class="form-container">
+        <input type="hidden" id="studentId" value="<?= studentId ?>">
+
+        <div class="question-card" id="q1">
+          <h2>1️⃣ ¿Cuál es tu situación profesional actual?</h2>
+          <button class="option">💼 Ya tengo un empleo de tiempo completo.</button>
+          <button class="option">🧑‍💻 Estoy en prácticas profesionales (medio tiempo).</button>
+          <button class="option">🚀 Estoy emprendiendo mi propio proyecto.</button>
+          <button class="option">🔎 Sigo buscando y explorando oportunidades.</button>
+        </div>
+
+        <div class="question-card hidden" id="q2">
+          <h2>2️⃣ Pensando en tu primer año como EXATEC, ¿cuál es tu meta principal?</h2>
+          <button class="option">📈 Consolidarme en un empleo que me apasione.</button>
+          <button class="option">🎓 Adquirir certificaciones o especializarme en mi área.</button>
+          <button class="option">💡 Emprender o hacer crecer mi negocio.</button>
+          <button class="option">📚 Aplicar a un posgrado.</button>
+          <button class="option">❓ Aún lo estoy definiendo.</button>
+        </div>
+        
+        <div class="question-card hidden" id="q3">
+          <h2>3️⃣ Más allá de lo profesional, ¿cómo te sientes con tu balance de vida en este momento de transición?</h2>
+          <button class="option">✨ Con energía y equilibrio entre mis metas.</button>
+          <button class="option">🧘 Enfocado/a principalmente en mi carrera.</button>
+          <button class="option">😩 Un poco abrumado/a, me cuesta encontrar balance.</button>
+          <button class="option">🤔 Inseguro/a, no he pensado en mis metas personales.</button>
+        </div>
+
+        <div class="question-card hidden" id="q4">
+          <h2>4️⃣ En una escala del 1 al 5, ¿qué tan preparado/a te sientes para los retos del mundo profesional (entrevistas, negociaciones, adaptación)?</h2>
+          <div class="scale-options">
+            <button class="option scale">1</button>
+            <button class="option scale">2</button>
+            <button class="option scale">3</button>
+            <button class="option scale">4</button>
+            <button class="option scale">5</button>
+          </div>
+          <div class="scale-labels">
+            <span>Nada preparado 😥</span>
+            <span>Totalmente listo/a 💪</span>
+          </div>
+        </div>
+
+        <div class="question-card hidden" id="thank-you">
+          <h2>¡Excelente, <span id="studentNameThanks"><?= studentName ?></span>! ✅</h2>
+          <p>Tus respuestas han sido registradas. El último paso es la sesión de cierre.</p>
+          <div class="event-details">
+            <h3>🚀 <?= sessionTitle ?></h3>
+            <p><?= sessionDetails ?></p>
+            <p>🗓️ Fecha: <?= sessionDate ?></p>
+            <p>⏰ Hora: <?= sessionTimeStart ?> - <?= sessionTimeEnd ?></p>
+            <p>📍 Lugar: <?= sessionLocation ?></p>
+          </div>
+          <div class="calendar-info">
+            <p>💡 <strong>Tip:</strong> Al hacer clic en el botón de abajo, se abrirá Google Calendar con todos los datos del evento ya listos. Solo tendrás que dar clic en "Guardar" para agregarlo a tu calendario.</p>
+          </div>
+          <div class="action-buttons">
+            <button id="saveEventBtn" class="btn primary">📅 Agendar en mi Calendario</button>
+            <button id="requestTimeBtn" class="btn secondary">No puedo asistir, pedir otro horario</button>
+          </div>
+          <p id="confirmationMessage" class="hidden"></p>
+        </div>
+      </div>
+    </div>
+    <?!= include('JavaScript'); ?>
+  </body>
+</html>
